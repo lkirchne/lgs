@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LGS-Trainer</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f4f9;
+    color: #333;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+
+  .controls {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .input-field, .difficulty-field {
+    text-align: center;
+    margin: 10px 0;
+  }
+
+  input {
+    width: 50px;
+    text-align: center;
+  }
+
+  button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    font-size: 1em;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background 0.3s;
+  }
+
+  button:hover {
+    background-color: #0056b3;
+  }
+
+  select {
+    font-size: 1em;
+    padding: 5px;
+    border-radius: 5px;
+  }
+
+  #result {
+    min-height: 50px;
+    text-align: center;
+    width: 350px;
+    margin: 10px auto;
+    padding: 10px;
+    background: #fff;
+    border-radius: 5px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  }
+
+  canvas {
+    border: 2px solid #555;
+    background-color: white;
+    display: block;
+    width: 100%;
+    border-radius: 5px;
+    margin: 70px 0 0 0;
+  }
+
+  .row {
+    display: flex;
+  }
+
+  .column {
+    flex: 50%;
+  }
+
+  .frac {
+    display: inline-block;
+    position: relative;
+    vertical-align: middle;
+    letter-spacing: 0.001em;
+    text-align: center;
+  }
+  .frac > span {
+      display: block;
+      padding: 0.1em;
+  }
+  .frac span.bottom {
+      border-top: thin solid black;
+  }
+  .frac span.symbol {
+      display: none;
+  } 
+</style>
+</head>
+<body>
+
+<div class="row">
+  <div class="column">
+    <h1>LGS-Trainer</h1>
+
+    <div class="difficulty-field">
+      <label for="difficulty">Schwierigkeitsgrad:</label>
+      <select id="difficulty">
+        <option value="leicht">Leicht</option>
+        <option value="mittel">Mittel</option>
+        <option value="schwer">Schwer</option>
+      </select>
+    </div>
+
+    <div id="systemDisplay"></div>
+
+    <button id="newTaskBtn">Neues LGS</button>
+
+    <h2>Teste ein Wertepaar</h2>
+    <div class="input-field">
+      <label for="xInput">x: </label>
+      <input class="koordinate" type="number" id="xInput" value="0" step="0.1">
+      <label for="yInput">y: </label>
+      <input class="koordinate" type="number" id="yInput" value="0" step="0.1">
+      <br><br>
+      <button id="checkBtn">Überprüfen</button>
+    </div>
+
+    <div id="result"></div>
+  </div>
+
+  <div class="column">
+    <button id="toggleCanvasBtn">Koordinatensystem ausblenden</button>
+    <canvas id="canvas" width="600" height="600"></canvas>
+  </div>
+</div>
+
+
+  <script>
+    let a1, b1, c1, a2, b2, c2;
+    let solX, solY;
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const originX = canvas.width / 2;
+    const originY = canvas.height / 2;
+    const scale = 25;
+
+    const g1_color = '#332288'
+    const g2_color = '#88CCEE'
+
+    const toOptionalFixed = (num) => `${Number.parseFloat(num.toFixed(2))}`;
+
+    const toggleCanvasBtn = document.getElementById('toggleCanvasBtn');
+    function toggleCanvas() {
+      if (canvas.style.visibility === 'hidden') {
+        canvas.style.visibility = 'visible';
+        toggleCanvasBtn.textContent = 'Koordinatensystem ausblenden';
+      } else {
+        canvas.style.visibility = 'hidden';
+        toggleCanvasBtn.textContent = 'Koordinatensystem einblenden';
+      }
+    }
+
+    function setCanvasVisibility(visible) {
+      canvas.style.visibility = visible ? 'visible' : 'hidden';
+      toggleCanvasBtn.textContent = visible ? 'Koordinatensystem ausblenden' : 'Koordinatensystem einblenden';
+    }
+
+    toggleCanvasBtn.addEventListener('click', toggleCanvas);
+
+    function drawAxes() {
+      ctx.lineWidth = 1;
+      const difficulty = document.getElementById('difficulty').value;
+      if(difficulty === "leicht") {
+        for (let i = -11; i <= 11; i++) {
+          ctx.strokeStyle = "#ccc";
+          ctx.beginPath();
+          ctx.moveTo(originX + i * scale, 0);
+          ctx.lineTo(originX + i * scale, canvas.height);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(0, originY - i * scale);
+          ctx.lineTo(canvas.width, originY - i * scale);
+          ctx.stroke();
+
+          if( -12 < i && !(-1 < i && i < 1) && i < 12) {
+            ctx.strokeStyle = "black";
+            let xMark = originX + i * scale;
+            ctx.beginPath();
+            ctx.moveTo(xMark, originY - 5);
+            ctx.lineTo(xMark, originY + 5);
+            ctx.stroke();
+
+            let yMark = originY - i * scale;
+            ctx.beginPath();
+            ctx.moveTo(originX - 5, yMark);
+            ctx.lineTo(originX + 5, yMark);
+            ctx.stroke();
+
+            if(i < 0) {
+              ctx.fillText(i, originX + 10, yMark + 2); // y
+              ctx.fillText(i, xMark - 6, originY + 18);  // x   
+            } else {
+              ctx.fillText(i, originX + 10, yMark + 2); // y
+              ctx.fillText(i, xMark - 3, originY + 18);  // x   
+            }
+       
+          }
+        }
+      }
+      if(difficulty === "mittel") {
+        ctx.strokeStyle = "black";
+        // Markierung bei y = 5 (nur positive Seite, y steigt nach oben)
+        let xMark = originX + 5 * scale;
+        ctx.beginPath();
+        ctx.moveTo(xMark, originY - 10);
+        ctx.lineTo(xMark, originY + 10);
+        ctx.stroke();
+        ctx.fillText("5", xMark - 10, originY + 25);
+
+        let yMark = originY - 5 * scale;
+        ctx.beginPath();
+        ctx.moveTo(originX - 10, yMark);
+        ctx.lineTo(originX + 10, yMark);
+        ctx.stroke();
+        ctx.fillText("5", originX + 15, yMark + 5);
+      }
+      if(difficulty === "schwer") {
+        //
+      }
+      ctx.strokeStyle = "black";
+      ctx.lineWidth = 2;
+
+      ctx.beginPath();
+      ctx.moveTo(0, originY);
+      ctx.lineTo(canvas.width, originY);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(originX, 0);
+      ctx.lineTo(originX, canvas.height);
+      ctx.stroke();
+    }
+
+    function drawLine(a, b, c, color) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+
+      if (b !== 0) {
+        let x1 = -12, x2 = 12;
+        let y1 = (c - a * x1) / b;
+        let y2 = (c - a * x2) / b;
+        ctx.beginPath();
+        ctx.moveTo(originX + x1 * scale, originY - y1 * scale);
+        ctx.lineTo(originX + x2 * scale, originY - y2 * scale);
+        ctx.stroke();
+      }
+    }
+
+      // Zeichnet den Testpunkt, der von der Schülerin eingegeben wurde
+    function drawPoint(x, y) {
+      const px = originX + x * scale;
+      const py = originY - y * scale;
+      const size = 10; // Länge der Arme des Kreuzes in Pixeln
+
+      ctx.strokeStyle = 'black';
+      ctx.lineWidth = 4;
+      
+      // Zeichne die erste Diagonale: von oben links nach unten rechts
+      ctx.beginPath();
+      ctx.moveTo(px - size, py - size);
+      ctx.lineTo(px + size, py + size);
+      ctx.stroke();
+
+      // Zeichne die zweite Diagonale: von oben rechts nach unten links
+      ctx.beginPath();
+      ctx.moveTo(px + size, py - size);
+      ctx.lineTo(px - size, py + size);
+      ctx.stroke();
+    }
+
+    function updateCanvas(drawThePoint = false) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawAxes();
+      drawLine(a1, b1, c1, g1_color);
+      drawLine(a2, b2, c2, g2_color);
+
+      if(drawThePoint) {
+        const x = parseFloat(document.getElementById('xInput').value);
+        const y = parseFloat(document.getElementById('yInput').value);
+        drawPoint(x,y);
+      }
+    }
+
+    function newSystem() {
+      const difficulty = document.getElementById('difficulty').value;
+
+      let coefRange, solRange, allowFractions;
+
+      if (difficulty === "leicht") {
+        coefRange = 10;
+        solRange = 4;
+        allowFractions = false;
+      } else if (difficulty === "mittel") {
+        coefRange = 20;
+        solRange = 5;
+        allowFractions = true;
+      } else {
+        coefRange = 50;
+        solRange = 8;
+        allowFractions = true;
+      }
+
+      solX = randomInt(-solRange, solRange, allowFractions);
+      solY = randomInt(-solRange, solRange, allowFractions);
+
+      do {
+        a1 = randomInt(-coefRange, coefRange, allowFractions);
+        b1 = randomInt(-coefRange, coefRange, allowFractions);
+        a2 = randomInt(-coefRange, coefRange, allowFractions);
+        b2 = randomInt(-coefRange, coefRange, allowFractions);
+      } while (a1 * b2 - a2 * b1 === 0);
+
+      c1 = a1 * solX + b1 * solY;
+      c2 = a2 * solX + b2 * solY;
+
+      a1String = (a1 == 1 || a1 == -1) ? "" : a1
+      a2String = (a2 == 1 || a2 == -1) ? "" : a2
+      if( a1 % 1 != 0 ) {
+        [nominator, denominator] = getFraction(a1);
+        a1String = `<span class="frac"><span>${nominator}</span><span class="symbol">/</span><span class="bottom">${denominator}</span></span>`;
+      }
+      if( a2 % 1 != 0 ) {
+        [nominator, denominator] = getFraction(a2);
+        a2String = `<span class="frac"><span>${nominator}</span><span class="symbol">/</span><span class="bottom">${denominator}</span></span>`;
+      }
+
+
+      const systemDiv = document.getElementById('systemDisplay');
+      systemDiv.innerHTML = `<p><strong>Gleichungssystem:</strong></p>
+        <div style="display: grid; justify-content: center; text-align: center;">
+          <p style="color:${g1_color}; display: grid; grid-template-columns: 30px auto; gap: 15px; margin: 10px 0 0 -20px;">
+            <span style="text-align: right;">I.</span> 
+            <span>${a1String}x + ${b1}y = ${c1}</span>
+          </p>
+          <p style="color:${g2_color}; display: grid; grid-template-columns: 30px auto; gap: 15px; margin: 10px 0 30px -20px;">
+            <span style="text-align: right;">II.</span> 
+            <span>${a2String}x + ${b2}y = ${c2}</span>
+          </p>
+        </div>`;
+
+      console.log(`(${solX}|${solY})`)
+      document.getElementById('result').innerHTML = "";
+      updateCanvas();
+    }
+
+    document.getElementById('newTaskBtn').addEventListener('click', newSystem);
+    document.getElementById('difficulty').addEventListener('change', function() {
+      const difficulty = document.getElementById('difficulty').value;
+      if(difficulty === "leicht" || difficulty === "mittel") {
+        setCanvasVisibility(true);
+      } else {
+        setCanvasVisibility(false);
+      }
+      newSystem();
+    });
+    document.getElementById('checkBtn').addEventListener('click', function () {
+      const x = parseFloat(document.getElementById('xInput').value);
+      const y = parseFloat(document.getElementById('yInput').value);
+      updateCanvas(true);
+
+      const eq1 = a1 * x + b1 * y;
+      const eq2 = a2 * x + b2 * y;
+
+      const right_color = "#117733"
+      const wrong_color = "#CC6677"
+
+      let resultText = "";
+      if(Math.abs(eq1 - c1) < 0.001 && Math.abs(eq2 - c2) < 0.001) {
+        resultText = `<span style="color:${right_color}">Gratulation! Beide Gleichungen sind erfüllt.</span><br>Die Lösungsmenge ist: &#120131; = {(${toOptionalFixed(x)}|${toOptionalFixed(y)})}`;
+      } else {
+        resultText += (eq1.toFixed(2) == c1) ? `<span style="color:${right_color}">Geichung  I. ist  erfüllt. <span> (${toOptionalFixed(eq1)} = ${c1})</span><br>` : `<span style="color:${wrong_color}">Geichung  I. ist nicht erfüllt.</span><span> (${toOptionalFixed(eq1)} &#8800; ${c1})</span><br>`;
+        resultText += (eq2.toFixed(2) == c2) ? `<span style="color:${right_color}">Geichung II. ist  erfüllt. <span> (${toOptionalFixed(eq2)} = ${c1})</span><br>` : `<span style="color:${wrong_color}">Geichung II. ist nicht erfüllt.</span><span> (${toOptionalFixed(eq2)} &#8800; ${c2})</span><br>`;
+      }
+      document.getElementById('result').innerHTML = resultText;
+    });
+
+    function randomInt(min, max, allowFractions) {
+      let num = Math.floor(Math.random() * (max - min + 1)) + min;
+      return allowFractions ? num + (Math.random() < 0.5 ? 0.25 : 0) : num;
+    }
+
+    
+    const reduce = (numerator,denominator) => {
+      let gcd = function gcd(a,b){
+        return b ? gcd(b, a%b) : a;
+      };
+      gcd = gcd(numerator,denominator);
+      return [numerator/gcd, denominator/gcd];
+    }
+
+    const getFraction = (decimal) => {
+      let a = decimal - decimal.toFixed();
+      let tens = Math.pow(10,a.toString().length - 2);
+
+      let numerator = tens * decimal;
+      let denominator = tens;
+
+      return reduce(numerator,denominator);
+    }
+
+    newSystem();
+  </script>
+</body>
+</html>
