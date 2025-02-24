@@ -331,6 +331,11 @@
 
       a1String = (a1 == 1 || a1 == -1) ? "" : a1
       a2String = (a2 == 1 || a2 == -1) ? "" : a2
+      b1String = b1
+      b2String = b2
+      c1String = c1
+      c2String = c2
+
       if( a1 % 1 != 0 ) {
         [nominator, denominator] = getFraction(a1);
         a1String = `<span class="frac"><span>${nominator}</span><span class="symbol">/</span><span class="bottom">${denominator}</span></span>`;
@@ -339,6 +344,22 @@
         [nominator, denominator] = getFraction(a2);
         a2String = `<span class="frac"><span>${nominator}</span><span class="symbol">/</span><span class="bottom">${denominator}</span></span>`;
       }
+      if( a1 % 1 != 0 ) {
+        [nominator, denominator] = getFraction(b1);
+        b1String = `<span class="frac"><span>${nominator}</span><span class="symbol">/</span><span class="bottom">${denominator}</span></span>`;
+      }
+      if( a2 % 1 != 0 ) {
+        [nominator, denominator] = getFraction(b2);
+        b2String = `<span class="frac"><span>${nominator}</span><span class="symbol">/</span><span class="bottom">${denominator}</span></span>`;
+      }
+      if( c1 % 1 != 0 ) {
+        [nominator, denominator] = getFraction(c1);
+        c1String = `<span class="frac"><span>${nominator}</span><span class="symbol">/</span><span class="bottom">${denominator}</span></span>`;
+      }
+      if( c2 % 1 != 0 ) {
+        [nominator, denominator] = getFraction(c2);
+        c2String = `<span class="frac"><span>${nominator}</span><span class="symbol">/</span><span class="bottom">${denominator}</span></span>`;
+      }
 
 
       const systemDiv = document.getElementById('systemDisplay');
@@ -346,11 +367,11 @@
         <div style="display: grid; justify-content: center; text-align: center;">
           <p style="color:${g1_color}; display: grid; grid-template-columns: 30px auto; gap: 15px; margin: 10px 0 0 -20px;">
             <span style="text-align: right;">I.</span> 
-            <span>${a1String}x + ${b1}y = ${c1}</span>
+            <span>${a1String}x + ${b1String}y = ${c1String}</span>
           </p>
           <p style="color:${g2_color}; display: grid; grid-template-columns: 30px auto; gap: 15px; margin: 10px 0 30px -20px;">
             <span style="text-align: right;">II.</span> 
-            <span>${a2String}x + ${b2}y = ${c2}</span>
+            <span>${a2String}x + ${b2String}y = ${c2String}</span>
           </p>
         </div>`;
 
