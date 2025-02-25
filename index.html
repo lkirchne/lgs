@@ -405,8 +405,8 @@
       if(Math.abs(eq1 - c1) < 0.001 && Math.abs(eq2 - c2) < 0.001) {
         resultText = `<span style="color:${right_color}">Gratulation! Beide Gleichungen sind erfüllt.</span><br>Die Lösungsmenge ist: &#120131; = {(${toOptionalFixed(x)}|${toOptionalFixed(y)})}`;
       } else {
-        resultText += (eq1.toFixed(2) == c1) ? `<span style="color:${right_color}">Geichung  I. ist  erfüllt. <span> (${toOptionalFixed(eq1)} = ${c1})</span><br>` : `<span style="color:${wrong_color}">Geichung  I. ist nicht erfüllt.</span><span> (${toOptionalFixed(eq1)} &#8800; ${c1})</span><br>`;
-        resultText += (eq2.toFixed(2) == c2) ? `<span style="color:${right_color}">Geichung II. ist  erfüllt. <span> (${toOptionalFixed(eq2)} = ${c1})</span><br>` : `<span style="color:${wrong_color}">Geichung II. ist nicht erfüllt.</span><span> (${toOptionalFixed(eq2)} &#8800; ${c2})</span><br>`;
+        resultText += (eq1.toFixed(2) == c1) ? `<span style="color:${right_color}">Geichung  I. ist  erfüllt.</span><span> (${toOptionalFixed(eq1)} = ${c1})</span><br>` : `<span style="color:${wrong_color}">Geichung  I. ist nicht erfüllt.</span><span> (${toOptionalFixed(eq1)} &#8800; ${c1})</span><br>`;
+        resultText += (eq2.toFixed(2) == c2) ? `<span style="color:${right_color}">Geichung II. ist  erfüllt.</span><span> (${toOptionalFixed(eq2)} = ${c1})</span><br>` : `<span style="color:${wrong_color}">Geichung II. ist nicht erfüllt.</span><span> (${toOptionalFixed(eq2)} &#8800; ${c2})</span><br>`;
       }
       document.getElementById('result').innerHTML = resultText;
     });
